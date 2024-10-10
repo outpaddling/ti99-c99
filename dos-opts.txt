@@ -1,0 +1,136 @@
+
+
+Files in Project:
+     c99c0.c
+     c99c1.c
+     c99c2.c
+     c99c3.c
+     c99csb.c
+     myfuncs.c
+
+Project Options:
+    Project Type:  MS-DOS application (.EXE)
+    Use Microsoft Foundation Classes:  Yes
+    Build Mode:  Debug
+
+
+    Compiler Options
+        Options String:
+            /nologo /Zr /W4 /WX /vd0 /Zi /AHu /Od /D "_DEBUG" /D "_DOS" /Fc /FR /Zn /Fd"C99.PDB"
+
+        Code Generation
+            CPU:  8086/8088
+            Calling Convention:  C/C++
+            Floating-Point Calls:  Use Emulator
+            Struct Member Byte Alignment:  2 Bytes
+            Check Pointers: Yes
+            Disable Stack Checking: No
+            Code Generator:  Auto Select
+
+        Custom Options
+            Disable Microsoft Language Extensions:  No
+            Enable Function-Level Linking:  No
+            QuickWin Support:  No
+            Eliminate Duplicate Strings:  No
+            Warning Level:  4
+            Suppress Display of Sign-On Banner
+            Other Options:  /Fd"C99.PDB"
+            Warnings As Errors:  Yes
+
+        Custom Option Options (C++)
+            Representation Method:  Best-case always
+            General-Purpose Representation:  Point to any class (grayed-out in my compiler)
+            Disable Construction Displacements:  Yes
+
+        Debug Options
+            Debug Information:  Full (Using Program Database)
+
+        Listing Files
+            Browser Information:  Yes
+            Include Local Variables:  Yes
+            Don't Pack Information:  Yes
+            Assembly:  Yes
+            Include Machine Code:  No
+            Include Source and Machine Code:  Yes
+
+        Memory Model
+            Model:  Huge
+            Segment Setup:  SS != DS, DS loaded on function entry
+            New Segment Data Size Threshold:  (blank)
+            Assume 'extern' and Uninitialized Data 'far':  No
+
+        Optimizations
+            Default:  No
+            Disable (Debug):  Yes
+            Maximize Speed:  No
+            Minimize Size:  No
+            Customize:  No
+            Inline Expansion of Functions:  Disable
+            Inlined Function Size:  4 - Size Grade
+            Custom Optimizations:  (all grayed-out)
+
+        P-Code Generation
+            P-Code Optimization On:  No
+            Disable P-Code Quoting:  (grayed-out)
+            Sort Local Variables in Occurrence Order:  (grayed-out)
+            Remove P-Code Native Entry Points:  (grayed-out)
+            Number of P-Code Entry Tables:  (blank)(grayed-out)
+
+        Precompiled Headers
+            Automatic Use of Precompiled Headers:  No
+            Precompile through Header:  (blank)(grayed-out)
+            C++ Files
+                Precompile through Header:  (blank)
+                Precompile with Source:  (blank)(grayed-out)
+            C Files
+                Precompile through Header:  (blank)
+                Precompile with Source:  C99C0.C(grayed-out)
+
+        Preprocessor
+            Symbols and Macros to Define:  _DEBUG, _DOS
+            Individual Symbols to Undefine:  (blank)
+            Undefine All Symbols:  No
+            Include Path:  (blank)
+            Ignore Standard Places of Include Files:  No
+
+        Segment Names
+            Data Segment:  (blank)
+            Code Segment:  (blank)
+            P-Code Segment:  (blank)
+            Module Name:  (blank)
+            V-Table Segment:  (blank)
+
+
+    Linker Options
+
+        Options String:
+            /NOLOGO /LIB:"lafxcrd" /LIB:"oldnames" /LIB:"llibce" /NOI /STACK:5120 /ONERROR:NOEXE /INFO /CO /MAP /LINE 
+
+        Input
+            Libraries:  lafxcrd, oldnames, llibce
+            Ignore Default Libraries:  No
+            Specific Libraries to Ignore:  (blank)
+            Prevent Use of Extended Dictionary:  No
+            Distinguish Letter Case:  Yes
+
+        Memory Image
+            Don't Remove Unreferenced Packaged Functions:  No
+            Pack EXE File:  No
+            Pack Code:  (blank)
+            Pack Data:  (blank)(grayed-out)
+            Stack Size:  5120
+            Translate Far Calls:  No
+            Max Number of Segments:  (blank)
+
+    Miscellaneous
+        Suppress Display of Sign-On Banner:  Yes
+        Other Options:  (blank)
+
+    Output
+        Generate Debugging Information:  Yes
+        Create Map File:  Yes
+        Include Line Numbers/Addresses in MAP:  Yes
+        Prevent Creation of EXE on Linker Error:  Yes
+        Produce More Detailed Output:  Yes
+        Produced COM File:  No (grayed-out)
+        Segment Alignment:  (blank)(grayed-out)

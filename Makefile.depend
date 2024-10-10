@@ -1,0 +1,18 @@
+c99c0.o: c99c0.c c99.h
+	${CC} -c ${CFLAGS} c99c0.c
+
+c99c1.o: c99c1.c c99proto.h c99.h
+	${CC} -c ${CFLAGS} c99c1.c
+
+c99c2.o: c99c2.c c99proto.h c99.h
+	${CC} -c ${CFLAGS} c99c2.c
+
+c99c3.o: c99c3.c c99proto.h c99.h
+	${CC} -c ${CFLAGS} c99c3.c
+
+c99csb.o: c99csb.c c99proto.h c99.h
+	${CC} -c ${CFLAGS} c99csb.c
+
+myfuncs.o: myfuncs.c myfuncs.h
+	${CC} -c ${CFLAGS} myfuncs.c
+

@@ -1,0 +1,8 @@
+
+void    main()
+
+{
+    puts("Hello!");
+    
+    return 0;
+}

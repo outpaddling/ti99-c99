@@ -1,0 +1,16 @@
+*c99 v4.0 (c) 1985, 1987 Clint Pulley
+       REF     C$CIND, C$DIV, C$REM, C$ASR, C$ASL, C$EQ, C$NE, C$LT, C$LE
+       REF     C$GT, C$GE, C$ULT, C$ULE, C$UGT, C$UGE, C$LNEG, C$SWCH
+       REF     GETCHA, GETS, PUTCHA, PUTS, LOCATE, POLL, TSCRN, EXIT, C$CALL
+       DEF MAIN
+MAIN
+       LI      8, C$1
+       BL      15
+       BL      *12
+       DATA    PUTS
+       INCT    14, 
+       S       8, 8
+       B       *13
+C$1    BYTE    72,101,108,108,111,33,0
+       EVEN
+       END

@@ -1,0 +1,6 @@
+
+When compiling this under UNIX or LINUX, use the following command-line:
+
+cc -o c99 -DUNIX c99c0.c c99c1.c c99c2.c c99c3.c c99csb.c myfuncs.c
+
+The standard C libraries may need to be added to the command-line; the exact libraries may vary depending on the UNIX version or system being used.
