@@ -1,6 +1,6 @@
 
 /*      Routines defined in c99c1.c             */
-int     main (void);
+int     main (int argc, char *argv[]);
 void    parse (void);
 void    dumpglbsyms (void);
 void    dumplocsyms (void);
