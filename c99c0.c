@@ -51,15 +51,15 @@
  */
 /* external linkage */
 #ifdef __POWERC
-#define	_DOS
+#define _DOS
 #endif
 
 #if defined (_DOS) || defined (UNIX)
 #include <stdio.h>
 #else
-entry		line, lptr;	/* for C99CSB */
-extern fopen(), fclose(), cfread(), putc();	/* in CCFIO */
-extern getlit(), putlit(), getfn(), alpha();	/* in C99CSB */
+entry           line, lptr;     /* for C99CSB */
+extern fopen(), fclose(), cfread(), putc();     /* in CCFIO */
+extern getlit(), putlit(), getfn(), alpha();    /* in C99CSB */
 extern numeric(), an(), astreq(), streq(), putint(), getint(), hash();
 #endif
 /*
@@ -67,7 +67,7 @@ extern numeric(), an(), astreq(), streq(), putint(), getint(), hash();
  */
 #if !defined (_DOS) && !defined (UNIX)
 #asm
-AORG > 8330
+AORG >8330
 #endasm
 #endif
 

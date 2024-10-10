@@ -223,6 +223,7 @@ parse(void)
 	    blanks();   /* Force EOF if pending    */
 	    continue;
 	}
+	// FIXME: Should this be "#include"?
 	if (match("#includ") == YES)
 	{       /* Include-file    */
 	    doinclude();
