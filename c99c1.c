@@ -13,6 +13,9 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <sysexits.h>
+
+#define PATH_MAX    16
 
 #ifdef __POWERC
 #define _DOS
@@ -92,39 +95,81 @@ int     main(int argc, char *argv[])
     base_dir[0] = (char)0;
 #endif
 
+    printf("argc = %d\n", argc);
+    
     /* get user options                */
-    if (argc == 1)
+    if (argc < 2)
+    {
 	ask_opts();
+    }
     else
     {
+	puts("Using CLI");
+	char *infile = NULL, *outfile = NULL;
+	ctext = atext = rtext = pushin = test_mode = NO;
+	outfile = NULL;
+	// Output = input - _c + _s
 	for (int c = 0; c < argc; ++c)
 	{
 	    if (argv[c][0] == '-')
 	    {
 		if (strcmp(argv[c], "--c-text") == 0)
 		{
+		    ctext = YES;
 		}
 		else if (strcmp(argv[c], "--assembly-comments") == 0)
 		{
+		    atext = YES;
 		}
 		else if (strcmp(argv[c], "--r-prefix") == 0)
 		{
+		    rtext = YES;
 		}
 		else if (strcmp(argv[c], "--inline-push") == 0)
 		{
+		    pushin = YES;
 		}
 		else if (strcmp(argv[c], "--test") == 0)
 		{
+		    test_mode = YES;
 		}
+		else if ( (strcmp(argv[c], "--output") == 0) || 
+			  (strcmp(argv[c], "-o") == 0 ) )
+		{
+		    if ( (argv[c + 1] != NULL) && (argv[c + 1][0] != '-') )
+			outfile = argv[c + 1];
+		    else
+			usage(argv);
+		}
+		else
+		    usage(argv);
 	    }
+	    else
+	    {
+		infile = argv[c];
+		input = FOPEN(infile, "r");
+	    }
+	}
+	if ( outfile == NULL )
+	{
+	    static char    default_outfile[PATH_MAX + 1], *p;
+	    
+	    strlcpy(default_outfile, infile, PATH_MAX + 1);
+	    if ( (p = strstr(default_outfile, "_c")) != NULL )
+		*p = '\0';
+	    strlcat(default_outfile, "_s", PATH_MAX + 1);
+	    output = FOPEN(default_outfile, "w");
+	    printf("output = %s %d\n", default_outfile, output);
 	}
     }
 
     puts("\nTI-99 filenames cannot contain a '.', so '_' is");
     puts("typically used to separate a filename extension.");
     system("ls *_c");
-    input = getfn("\nInput", "r");        /* Get initial input file  */
-    openout();  /* Get output file                 */
+    if ( input == 0 )
+	input = getfn("\nInput", "r");        /* Get initial input file  */
+    if ( output == 0 )
+	openout();  /* Get output file                 */
     header();   /* Intro (startup) code    */
     preprocess();       /* Start input                             */
     parse();    /* Process ALL input               */
@@ -1936,4 +1981,15 @@ doasm(void)
     }
     kill();     /* invalidate line */
     cmode = YES;        /* then back to parse level */
+}
+
+
+void    usage(char *argv[])
+
+{
+    fprintf(stderr, "Usage: %s\n"
+		    "       [--c-text] [--assembly-comments] [--r-prefix]\n"
+		    "       [--inline-push] [--test]\n"
+		    "       source_c -o source_s\n", argv[0]);
+    exit(EX_USAGE);
 }

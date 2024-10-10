@@ -164,7 +164,7 @@ short   modstk (short newsp);
 void    doublereg (void);
 void    add (void);
 void    clrp (void);
-
+void    usage(char *argv[]);
 
 /*      Routines defined in c99csb.c    */
 short            getfn (char *text, char *m);
