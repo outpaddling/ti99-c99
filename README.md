@@ -10,3 +10,13 @@ The C99 compiler was designed to run on the TI-99, alongside the
 Editor/Assembler system.  This is an adaptation of the code by Kristine
 Rogers for cross-compiling on Unix or DOS systems.  See readme.txt for
 notes on the porting effort.
+
+It is my intention to add TI-99 support to
+[plasm](https://github.com/outpaddling/plasm/) so that assembly to
+a TI object file can be done in an automated fashion on the PC side
+as well.  (This will likely take a while).
+
+Using simple tools on both the Unix and TI-99 side for uploading
+the object files to a TI-99, the coding and testing cycle can be
+highly automated and greatly accelerated, following the same workflow
+used for embedded microcontrollers.
