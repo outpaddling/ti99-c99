@@ -95,12 +95,18 @@ int     main(int argc, char *argv[])
     base_dir[0] = (char)0;
 #endif
 
-    printf("argc = %d\n", argc);
-    
     /* get user options                */
     if (argc < 2)
     {
 	ask_opts();
+	
+	puts("\nTI-99 filenames cannot contain a '.', so '_' is");
+	puts("typically used to separate a filename extension.");
+	system("ls *_c");
+	if ( input == 0 )
+	    input = getfn("\nInput", "r");        /* Get initial input file  */
+	if ( output == 0 )
+	    openout();  /* Get output file                 */
     }
     else
     {
@@ -137,7 +143,7 @@ int     main(int argc, char *argv[])
 			  (strcmp(argv[c], "-o") == 0 ) )
 		{
 		    if ( (argv[c + 1] != NULL) && (argv[c + 1][0] != '-') )
-			outfile = argv[c + 1];
+			outfile = argv[++c];
 		    else
 			usage(argv);
 		}
@@ -152,24 +158,19 @@ int     main(int argc, char *argv[])
 	}
 	if ( outfile == NULL )
 	{
-	    static char    default_outfile[PATH_MAX + 1], *p;
+	    static char default_outfile[PATH_MAX + 1];
+	    char        *p;
 	    
 	    strlcpy(default_outfile, infile, PATH_MAX + 1);
 	    if ( (p = strstr(default_outfile, "_c")) != NULL )
 		*p = '\0';
 	    strlcat(default_outfile, "_s", PATH_MAX + 1);
-	    output = FOPEN(default_outfile, "w");
-	    printf("output = %s %d\n", default_outfile, output);
+	    outfile = default_outfile;
 	}
+	output = FOPEN(outfile, "w");
+	printf("output = %s %d\n", outfile, output);
     }
 
-    puts("\nTI-99 filenames cannot contain a '.', so '_' is");
-    puts("typically used to separate a filename extension.");
-    system("ls *_c");
-    if ( input == 0 )
-	input = getfn("\nInput", "r");        /* Get initial input file  */
-    if ( output == 0 )
-	openout();  /* Get output file                 */
     header();   /* Intro (startup) code    */
     preprocess();       /* Start input                             */
     parse();    /* Process ALL input               */
