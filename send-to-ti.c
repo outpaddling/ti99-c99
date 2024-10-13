@@ -66,7 +66,7 @@ int     main(int argc,char *argv[])
 	usage(argv[0]);
     
     /* Assume USB-serial adapter */
-    serial_fp = fopen("/dev/cuaU0", "r");
+    serial_fp = fopen("/dev/cuaU0", "w");
     if ( serial_fp == NULL )
     {
 	fprintf(stderr, "Cannot open /dev/cuaU0.\n");
@@ -86,13 +86,16 @@ int     main(int argc,char *argv[])
     // CS7 does not seem to work with the Prolific PL-2303, so specify
     // 8-bit on the TI side
     // port_settings.c_cflag |= CS7;
-    port_settings.c_cflag |= CLOCAL|CREAD;
+    port_settings.c_cflag |= CS8;
     // TI default no parity
     port_settings.c_cflag &= ~PARENB;
+    port_settings.c_cflag |= CLOCAL;
     // Don't convert CR to NL, strip CRs in send_line() if text file
-    port_settings.c_iflag &= ~ICRNL;
+    // TI-BASE INPUT reads until CR
+    port_settings.c_oflag &= ~OCRNL;
     // Char 255 should not signal EOF
     port_settings.c_lflag &= ~ICANON;
+    sleep(10);
 
     if ( tcsetattr(fileno(serial_fp), TCSANOW, &port_settings) != 0 )
     {
@@ -101,6 +104,9 @@ int     main(int argc,char *argv[])
 	return EX_OSERR;
     }
     
+    fputs("Hello!\r", serial_fp);
+    
+#if 0
     do
     {
 	do
@@ -163,6 +169,8 @@ int     main(int argc,char *argv[])
 	    fflush(stdout);
 	}
     }   while ( *filename != '\0' );
+#endif
+
     fclose(serial_fp);
     return EX_OK;
 }
