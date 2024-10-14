@@ -18,9 +18,9 @@
 #include <sys/param.h>
 #include <stdbool.h>
 #include <unistd.h>
+#include <byteswap.h>
 
-#define MAX_LINE_LEN    1024
-#define MAX_RESP_LEN    10
+#define RESP_MAX_LEN    10
 
 typedef enum
 {
@@ -40,13 +40,14 @@ int     main(int argc,char *argv[])
 {
     FILE            *serial_fp,
 		    *in_fp;
+    char            resp[RESP_MAX_LEN + 1];
     struct termios  port_settings;
-    char            *filename;
+    char            *file_name, *base_name;
     int             ch;
     
     if ( argc != 2 )
 	usage(argv[0]);
-    filename = argv[1];
+    file_name = argv[1];
     
     /* Assume USB-serial adapter */
     serial_fp = fopen("/dev/cuaU0", "w");
@@ -72,12 +73,11 @@ int     main(int argc,char *argv[])
     port_settings.c_cflag |= CS8;
     
     // TI default no parity
-    // port_settings.c_cflag |= PARENB;
-    port_settings.c_cflag &= ~PARENB;
+    port_settings.c_cflag |= PARENB;
+    // port_settings.c_cflag &= ~PARENB;
     
     // No modem control
     port_settings.c_cflag |= CLOCAL;
-
     port_settings.c_cflag &= ~HUPCL;
     
     // Don't convert CR to NL.  TI-BASIC INPUT reads until CR.
@@ -85,6 +85,7 @@ int     main(int argc,char *argv[])
     
     // Char 255 should not signal EOF
     port_settings.c_lflag &= ~ICANON;
+    port_settings.c_lflag &= ~ECHO;
     
     printf("CSIZE = %X\n", port_settings.c_cflag & CSIZE);
     printf("CSTOPB = %X\n", port_settings.c_cflag & CSTOPB);
@@ -96,6 +97,7 @@ int     main(int argc,char *argv[])
     printf("CRTS_IFLOW = %X\n", port_settings.c_cflag & CRTS_IFLOW);
 
     printf("OCRNL = %X\n", port_settings.c_oflag & OCRNL);
+    printf("ECHO = %X\n", port_settings.c_lflag & ECHO);
 
     if ( tcsetattr(fileno(serial_fp), TCSANOW, &port_settings) != 0 )
     {
@@ -105,12 +107,18 @@ int     main(int argc,char *argv[])
     }
     
     // OPEN #1:"RS232/1.BA=9600.DA=8.PA=N.EC",DISPLAY,VARIABLE 254
+    //putc(0, serial_fp);
+    base_name = strrchr(file_name, '/');
+    if ( base_name == NULL )
+	base_name = file_name;
+    else
+	++base_name;
+    fprintf(serial_fp, "%s\n", base_name);
+    usleep(1500000);
     
-    fputs("Hello!\n", serial_fp);
-    
-    if ( (in_fp = fopen(filename, "r")) == NULL )
+    if ( (in_fp = fopen(file_name, "r")) == NULL )
     {
-	fprintf(stderr, "Cannot open %s.\n", filename);
+	fprintf(stderr, "Cannot open %s.\n", file_name);
 	return EX_NOPERM;
     }
     printf("Run receiver on TI-99 using \"RS232.BA=%d.DA=8.PA=N.EC\",DISPLAY,VARIABLE 254\n",
@@ -120,30 +128,22 @@ int     main(int argc,char *argv[])
     while ( (ch = getc(in_fp)) != EOF )
     {
 	putc(ch, serial_fp);
-	usleep(10000);
-	// FIXME: Get handshake response from TI
+	// FIXME: Replace delays with handshaking
+	// TI BASIC needs a lot of time to process each line
+	usleep(8000);
 	if ( ch == '\n' )
-	    usleep(2000000);
+	{
+	    fgets(resp, RESP_MAX_LEN + 1, serial_fp);
+	    fputs(resp, stdout);
+	    usleep(4000000);
+	}
     }
     fclose(in_fp);
+    
+    fputs("### END OF FILE\n", serial_fp);
     fclose(serial_fp);
     
     return EX_OK;
-}
-
-
-size_t  send_line(char *line, FILE *fp, transfer_mode_t mode)
-
-{
-    char    *p = line;
-
-    // TI "LIST" command inserts null characters in the line numbers
-    // Also filter out CRs here, TI sends CR+LF unless using RS232.LF
-    while ( *p != '\0' )
-    {
-	putc(*p++, fp);
-    }
-    return p - line;
 }
 
 
