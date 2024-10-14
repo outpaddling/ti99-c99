@@ -17,6 +17,7 @@
 #include <errno.h>
 #include <sys/param.h>
 #include <stdbool.h>
+#include <unistd.h>
 
 #define MAX_LINE_LEN    1024
 #define MAX_RESP_LEN    10
@@ -40,30 +41,12 @@ int     main(int argc,char *argv[])
     FILE            *serial_fp,
 		    *in_fp;
     struct termios  port_settings;
-    struct stat     st;
-    char            filename[PATH_MAX+1],
-		    *p,
-		    line[MAX_LINE_LEN+1],
-		    resp[MAX_RESP_LEN+1];
-    transfer_mode_t transfer_mode;
-    transfer_object_t object_type;
+    char            *filename;
+    int             ch;
     
-    if ( argc != 3 )
+    if ( argc != 2 )
 	usage(argv[0]);
-
-    if ( strcmp(argv[1], "text") == 0 )
-	transfer_mode = TEXT;
-    else if ( strcmp(argv[1], "binary") == 0 )
-	transfer_mode = BINARY;
-    else
-	usage(argv[0]);
-    
-    if ( strcmp(argv[2], "disk") == 0 )
-	object_type = DISK_TRANSFER;
-    else if ( strcmp(argv[2], "file") == 0 )
-	object_type = FILE_TRANSFER;
-    else
-	usage(argv[0]);
+    filename = argv[1];
     
     /* Assume USB-serial adapter */
     serial_fp = fopen("/dev/cuaU0", "w");
@@ -85,17 +68,34 @@ int     main(int argc,char *argv[])
     
     // CS7 does not seem to work with the Prolific PL-2303, so specify
     // 8-bit on the TI side
-    // port_settings.c_cflag |= CS7;
+    port_settings.c_cflag &= ~CSIZE;    // Clear all size bits, CS8 uses 2
     port_settings.c_cflag |= CS8;
+    
     // TI default no parity
+    // port_settings.c_cflag |= PARENB;
     port_settings.c_cflag &= ~PARENB;
+    
+    // No modem control
     port_settings.c_cflag |= CLOCAL;
-    // Don't convert CR to NL, strip CRs in send_line() if text file
-    // TI-BASE INPUT reads until CR
+
+    port_settings.c_cflag &= ~HUPCL;
+    
+    // Don't convert CR to NL.  TI-BASIC INPUT reads until CR.
     port_settings.c_oflag &= ~OCRNL;
+    
     // Char 255 should not signal EOF
     port_settings.c_lflag &= ~ICANON;
-    sleep(10);
+    
+    printf("CSIZE = %X\n", port_settings.c_cflag & CSIZE);
+    printf("CSTOPB = %X\n", port_settings.c_cflag & CSTOPB);
+    printf("CREAD = %X\n", port_settings.c_cflag & CREAD);
+    printf("PARENB = %X\n", port_settings.c_cflag & PARENB);
+    printf("PARODD = %X\n", port_settings.c_cflag & PARODD);
+    printf("HUPCL = %X\n", port_settings.c_cflag & HUPCL);
+    printf("CLOCAL = %X\n", port_settings.c_cflag & CLOCAL);
+    printf("CRTS_IFLOW = %X\n", port_settings.c_cflag & CRTS_IFLOW);
+
+    printf("OCRNL = %X\n", port_settings.c_oflag & OCRNL);
 
     if ( tcsetattr(fileno(serial_fp), TCSANOW, &port_settings) != 0 )
     {
@@ -104,74 +104,30 @@ int     main(int argc,char *argv[])
 	return EX_OSERR;
     }
     
-    fputs("Hello!\r", serial_fp);
+    // OPEN #1:"RS232/1.BA=9600.DA=8.PA=N.EC",DISPLAY,VARIABLE 254
     
-#if 0
-    do
+    fputs("Hello!\n", serial_fp);
+    
+    if ( (in_fp = fopen(filename, "r")) == NULL )
     {
-	do
-	{
-	    printf("Filename for next disk or file? (Press return if no more disks)\n");
-	    fgets(filename, PATH_MAX + 1, stdin);
-	    if ( *filename == '\0' )
-		break;
-	    filename[strlen(filename)] = '\0';  // Trim \n
-	    
-	    if ( stat(filename, &st) == 0 )
-	    {
-		printf("%s exists.  Overwrite? (yes/no) ",filename);
-		send_line(resp, stdin, TEXT);
-		if ( strcmp(resp, "yes") != 0 )
-		    return 0;
-	    }
-	    else
-		strlcpy(resp, "yes", 4);
-	}   while ( strcmp(resp, "yes") != 0 );
-	
-	if ( *filename == '\0' )
-	    break;
-	
-	if ( (in_fp = fopen(filename, "r")) == NULL )
-	{
-	    fprintf(stderr, "Cannot open %s.\n", filename);
-	    return EX_NOPERM;
-	}
-	printf("Run receiver on TI-99 using RS232.BA=%d.DA=8\n",
-		cfgetispeed(&port_settings));
-	printf("Type Ctrl+c if this program does not automatically terminate.\n");
-	
-	if ( send_line(line, serial_fp, transfer_mode) == EOF )
-	{
-	    fprintf(stderr, "EOF sending first line.\n");
-	    return EX_DATAERR;
-	}
-	
-	if ( object_type == DISK_TRANSFER )
-	{
-	    if ( memcmp(line, "DISK NAME", 9) != 0 )
-	    {
-		fprintf(stderr, "Expected 'DISK NAME' on first line.\n");
-		return EX_DATAERR;
-	    }
-	    fputs(line, in_fp);
-	}
-	
-	while ( fgets(line, MAX_LINE_LEN + 1, in_fp) != NULL )
-	{
-	    send_line(line, serial_fp, transfer_mode);
-	    // Not assuming text file
-	    for (p = line; *p != '\0'; ++p)
-		if ( isprint(*p) || isspace(*p) )
-		    putchar(*p);
-		else
-		    printf(" \\%03o ", (unsigned char)*p);
-	    putchar('\n');
-	    fflush(stdout);
-	}
-    }   while ( *filename != '\0' );
-#endif
-
+	fprintf(stderr, "Cannot open %s.\n", filename);
+	return EX_NOPERM;
+    }
+    printf("Run receiver on TI-99 using \"RS232.BA=%d.DA=8.PA=N.EC\",DISPLAY,VARIABLE 254\n",
+	    cfgetispeed(&port_settings));
+    printf("Type Ctrl+c if this program does not automatically terminate.\n");
+    
+    while ( (ch = getc(in_fp)) != EOF )
+    {
+	putc(ch, serial_fp);
+	usleep(10000);
+	// FIXME: Get handshake response from TI
+	if ( ch == '\n' )
+	    usleep(2000000);
+    }
+    fclose(in_fp);
     fclose(serial_fp);
+    
     return EX_OK;
 }
 
