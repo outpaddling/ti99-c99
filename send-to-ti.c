@@ -18,9 +18,8 @@
 #include <sys/param.h>
 #include <stdbool.h>
 #include <unistd.h>
+#include <fcntl.h>
 #include <byteswap.h>
-
-#define RESP_MAX_LEN    10
 
 typedef enum
 {
@@ -34,13 +33,13 @@ typedef enum
 
 size_t  send_line(char *line, FILE *fp, transfer_mode_t mode);
 void    usage(char *progname);
+void    await_response(FILE *serial_fp);
 
 int     main(int argc,char *argv[])
 
 {
     FILE            *serial_fp,
 		    *in_fp;
-    char            resp[RESP_MAX_LEN + 1];
     struct termios  port_settings;
     char            *file_name, *base_name;
     int             ch;
@@ -49,8 +48,19 @@ int     main(int argc,char *argv[])
 	usage(argv[0]);
     file_name = argv[1];
     
+    if ( (in_fp = fopen(file_name, "r")) == NULL )
+    {
+	fprintf(stderr, "Cannot open %s.\n", file_name);
+	return EX_NOPERM;
+    }
+    printf("Run receiver on TI-99 using \"RS232.BA=%d.DA=8.PA=N.EC\",DISPLAY,VARIABLE 254\n",
+	    cfgetispeed(&port_settings));
+    printf("Type Ctrl+c if this program does not automatically terminate.\n");
+    printf("Press return to begin transfer...");
+    getchar();
+    
     /* Assume USB-serial adapter */
-    serial_fp = fopen("/dev/cuaU0", "w");
+    serial_fp = fopen("/dev/cuaU0", "w+");
     if ( serial_fp == NULL )
     {
 	fprintf(stderr, "Cannot open /dev/cuaU0.\n");
@@ -106,6 +116,10 @@ int     main(int argc,char *argv[])
 	return EX_OSERR;
     }
     
+    // Set blocking input
+    // int flags = fcntl(fileno(serial_fp), F_GETFL);
+    // fcntl(fileno(serial_fp), F_SETFL, flags & ~O_NONBLOCK);
+    
     // OPEN #1:"RS232/1.BA=9600.DA=8.PA=N.EC",DISPLAY,VARIABLE 254
     //putc(0, serial_fp);
     base_name = strrchr(file_name, '/');
@@ -113,29 +127,26 @@ int     main(int argc,char *argv[])
 	base_name = file_name;
     else
 	++base_name;
-    fprintf(serial_fp, "%s\n", base_name);
-    usleep(1500000);
-    
-    if ( (in_fp = fopen(file_name, "r")) == NULL )
-    {
-	fprintf(stderr, "Cannot open %s.\n", file_name);
-	return EX_NOPERM;
-    }
-    printf("Run receiver on TI-99 using \"RS232.BA=%d.DA=8.PA=N.EC\",DISPLAY,VARIABLE 254\n",
-	    cfgetispeed(&port_settings));
-    printf("Type Ctrl+c if this program does not automatically terminate.\n");
+    fprintf(serial_fp, "%s\r", base_name);
+    fflush(serial_fp);
+    sleep(1);
+    await_response(serial_fp);
     
     while ( (ch = getc(in_fp)) != EOF )
     {
-	putc(ch, serial_fp);
-	// FIXME: Replace delays with handshaking
+	// FIXME: Delays are necessary even with handshaking
 	// TI BASIC needs a lot of time to process each line
-	usleep(8000);
 	if ( ch == '\n' )
 	{
-	    fgets(resp, RESP_MAX_LEN + 1, serial_fp);
-	    fputs(resp, stdout);
-	    usleep(4000000);
+	    putc('\r', serial_fp);
+	    fflush(serial_fp);
+	    await_response(serial_fp);
+	    usleep(1000000);
+	}
+	else
+	{
+	    putc(ch, serial_fp);
+	    usleep(4000);
 	}
     }
     fclose(in_fp);
@@ -152,4 +163,20 @@ void    usage(char *progname)
 {
     fprintf(stderr, "Usage: %s text|binary disk|file\n", progname);
     exit(EX_USAGE);
+}
+
+
+void    await_response(FILE *serial_fp)
+
+{
+    int     ch;
+    
+    fprintf(stderr, "Reading response...\n");
+    // FIXME: Sometimes the O in OK doesn't arrive
+    while ( ((ch =getc(serial_fp)) != 'O') && (ch != 'K') )
+	printf("%d ", ch);
+    putchar(ch);
+    while ( ((ch = getc(serial_fp)) != '\r') && (ch != '\n') )
+	putchar(ch);
+    fprintf(stderr, "\nEnd of response.\n");
 }
