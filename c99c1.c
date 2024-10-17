@@ -113,7 +113,6 @@ int     main(int argc, char *argv[])
 	puts("Using CLI");
 	char *infile = NULL, *outfile = NULL;
 	ctext = atext = rtext = pushin = test_mode = NO;
-	outfile = NULL;
 	// Output = input - _c + _s
 	for (int c = 0; c < argc; ++c)
 	{

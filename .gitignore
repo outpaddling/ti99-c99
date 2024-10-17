@@ -1,3 +1,5 @@
 .*.bak
 *.o
 c99
+recv-from-ti
+send-to-ti

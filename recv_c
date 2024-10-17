@@ -1,0 +1,30 @@
+/***************************************************************************
+ *  Description:
+ *      Read a file overRS232
+ *      Not yet tested
+ *
+ *  History: 
+ *  Date        Name        Modification
+ *  2024-10-13  Jason Bacon Begin
+ ***************************************************************************/
+
+#define FN_MAX    9
+
+void    main(void)
+
+{
+    int     serial_unit, file_unit, ch;
+    char    filename[FN_MAX];
+    
+    serial_unit = fopen("RS232/1.BA=9600.DA=8.PA=E.EC.LF", "u");
+    fgets(filename, FN_MAX, serial_unit);
+    puts(filename);
+    
+    file_unit = fopen(filename, "w");
+    while ( (ch=getc(serial_unit)) != EOF )
+	putc(ch, file_unit);
+    fclose(file_unit);
+    
+    fclose(serial_unit);
+    return 0;
+}
