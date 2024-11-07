@@ -165,6 +165,7 @@ realclean: clean
 install: all
 	${MKDIR} -p ${DESTDIR}${PREFIX}/bin
 	${INSTALL} -s -m 0755 ${BIN} ${DESTDIR}${PREFIX}/bin
+	${INSTALL} -m 0755 ti99cc ${DESTDIR}${PREFIX}/bin
 	# ${INSTALL} -m 0644 Man/*.1 ${DESTDIR}${MANDIR}/man1
 
 install-strip: install
