@@ -1,0 +1,53 @@
+#!/bin/sh -e
+
+##########################################################################
+#   Synopsis:
+#       ti99cc program_c
+#       
+#   Description:
+#       Cross-compiles a c99 file using c99 and cross-assembles
+#       using xas99.py, to produce a TI-99/4A object file ready
+#       to load and run.
+#       
+#   Arguments:
+#       
+#   Returns:
+#
+#   Examples:
+#
+#   Files:
+#
+#   Environment:
+#
+#   See also:
+#       
+#   History:
+#   Date        Name        Modification
+#   2024-11-07  Jason Bacon Begin
+##########################################################################
+
+usage()
+{
+    printf "Usage: $0 program_c\n"
+    exit 1
+}
+
+
+##########################################################################
+#   Main
+##########################################################################
+
+if [ $# != 1 ]; then
+    usage
+fi
+c_source=$1
+
+if ! echo $c_source | grep '_c$'; then
+    usage
+fi
+
+assembly=${c_source%_c}_s
+
+set -x
+c99 $c_source -o $assembly
+xas99.py $assembly
